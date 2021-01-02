@@ -1,0 +1,1358 @@
+---
+title: "Gender and Income"
+author: "Charet Bolton and Jay Aswani"
+date: ""
+output:
+  html_document:
+    toc: true
+    toc_depth: 5
+---
+
+
+```{r global-options, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
+                  	echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(knitr)
+library(GGally)
+library(plotly)
+```
+
+```{r}
+nlsy <- read_csv("http://www.andrew.cmu.edu/user/achoulde/94842/final_project/nlsy97/nlsy97_Nov2020.csv")
+
+colnames(nlsy) <- c("PSTRAN_GPA.01_PSTR",
+	"INCARC_TOTNUM_XRND",
+	"INCARC_AGE_FIRST_XRND",
+	"INCARC_LENGTH_LONGEST_XRND",
+	"PUBID_1997",
+	"YSCH-36400_1997",
+	"YSCH-37000_1997",
+	"YSAQ_010_1997",
+	"YSAQ-369_1997",
+	"YEXP-300_1997",
+	"YEXP-1500_1997",
+	"YEXP-1600_1997",
+	"YEXP-1800_1997",
+	"YEXP-2000_1997",
+	"sex",
+	"KEY_BDATE_M_1997",
+	"KEY_BDATE_Y_1997",
+	"PC8_090_1997",
+	"PC8-092_1997",
+	"PC9_002_1997",
+	"PC12-024_1997",
+	"PC12-028_1997",
+	"CV_AGE_12/31/96_1997",
+	"CV_BIO_MOM_AGE_CHILD1_1997",
+	"CV_BIO_MOM_AGE_YOUTH_1997",
+	"CV_CITIZENSHIP_1997",
+	"CV_ENROLLSTAT_1997",
+	"CV_HH_NET_WORTH_P_1997",
+	"CV_YTH_REL_HH_CURRENT_1997",
+	"CV_MSA_AGE_12_1997",
+	"CV_URBAN_RURAL_AGE_12_1997",
+	"CV_SAMPLE_TYPE_1997",
+	"CV_HGC_BIO_DAD_1997",
+	"CV_HGC_BIO_MOM_1997",
+	"CV_HGC_RES_DAD_1997",
+	"CV_HGC_RES_MOM_1997",
+	"race",
+	"YSCH-6800_1998",
+	"YSCH-7300_1998",
+	"YSAQ-372B_1998",
+	"YSAQ-371_2000",
+	"YSAQ-282J_2002",
+	"YSAQ-282Q_2002",
+	"CV_HH_NET_WORTH_Y_2003",
+	"CV_BA_CREDITS.01_2004",
+	"YSAQ-000B_2004",
+	"YSAQ-373_2004",
+	"YSAQ-369_2005",
+	"CV_BIO_CHILD_HH_2007",
+	"YTEL-52~000001_2007",
+	"YTEL-52~000002_2007",
+	"YTEL-52~000003_2007",
+	"YTEL-52~000004_2007",
+	"CV_BIO_CHILD_HH_2009",
+	"CV_COLLEGE_TYPE.01_2011",
+	"CV_INCOME_FAMILY_2011",
+	"CV_HH_SIZE_2011",
+	"CV_HH_UNDER_18_2011",
+	"CV_HH_UNDER_6_2011",
+	"CV_HIGHEST_DEGREE_1112_2011",
+	"CV_BIO_CHILD_HH_2011",
+	"YSCH-3112_2011",
+	"YSAQ-000A000001_2011",
+	"YSAQ-000A000002_2011",
+	"YSAQ-000B_2011",
+	"YSAQ-360C_2011",
+	"YSAQ-364D_2011",
+	"YSAQ-371_2011",
+	"YSAQ-372CC_2011",
+	"YSAQ_373_2011",
+	"YSAQ-374_2011",
+	"YEMP_INDCODE-2002.01_2011",
+	"CV_BIO_CHILD_HH_2015",
+	"YEMP_INDCODE_2002.01_2017",
+	"YEMP_OCCODE_2002_01_2017",
+	"CV_MARSTAT_COLLAPSED_2017",
+	"YINC-1400_2017",
+	"income",
+	"YINC-1800_2017",
+	"YINC-2400_2017",
+	"YINC_2600_2017",
+	"YINC-2700_2017",
+	"CVC_YTH_REL_HH_AGE6_YCHR_XRND",
+	"CVC_SAT_MATH_SCORE_2007_XRND",
+	"CVC_SAT_VERBAL_SCORE_2007_XRND",
+	"CVC_ACT_SCORE_2007_XRND",
+	"CVC_HH_NET_WORTH_20_XRND",
+	"CVC_HH_NET_WORTH_25_XRND",
+	"CVC_ASSETS_FINANCIAL_25_XRND",
+	"CVC_ASSETS_DEBTS_20_XRND",
+	"CVC_HH_NET_WORTH_30_XRND",
+	"CVC_HOUSE_VALUE_30_XRND",
+	"CVC_HOUSE_TYPE_30_XRND",
+	"CVC_ASSETS_FINANCIAL_30_XRND",
+	"CVC_ASSETS_DEBTS_30_XRND")
+```
+
+```{r}
+nlsy.selected <- nlsy %>%
+  select(sex,
+     	income,
+     	CV_HIGHEST_DEGREE_1112_2011,
+     	YEMP_OCCODE_2002_01_2017,
+     	YEMP_INDCODE_2002.01_2017,
+     	PC9_002_1997,
+     	PC8_090_1997,
+     	INCARC_AGE_FIRST_XRND,
+     	CV_URBAN_RURAL_AGE_12_1997,
+     	CV_BIO_CHILD_HH_2015,
+     	CV_MARSTAT_COLLAPSED_2017,
+     	YINC_2600_2017)
+
+colnames(nlsy.selected) <- c("sex",
+                         	"income",
+                         	"highest.degree.attained.2017",
+                         	"occupation.2017",
+                         	"industry.2017",
+                         	"physical.mental.disability.1997",
+                         	"childhood.hard.times.1997",
+                         	"agerange.first.incarc",
+                         	"urban.rural",
+                         	"children.total",
+                         	"marital.status",
+                         	"spouse.income")
+
+
+```
+
+```{r}
+#removing invalid/negative numbers to create a dataset with topcoding
+nlsy.selected.inc.topcoding <- nlsy.selected %>%
+  filter(income >= 0)
+
+#removing topcoded and invalid numbers
+nlsy.selected <- nlsy.selected[-1*which(nlsy.selected$income==max(nlsy.selected$income, na.rm = TRUE)), ] %>%
+  filter(income >= 0)
+```
+
+```{r}
+
+nlsy.selected$sex <- recode_factor(nlsy.selected$sex,
+   	`1` = "Male",
+   	`2` = "Female",
+   	.default = NULL)
+
+```
+
+```{r}
+
+#Setting all negative values as NA as it is unclear how to properly interpret them
+nlsy.selected$highest.degree.attained.2017 <- recode(nlsy.selected$highest.degree.attained.2017,
+   	`0` = "None", `1` = "GED", `2` = "High School Diploma",
+   	`3` = "Associate/Junior College", `4` = "Bachelor's Degree", `5` = "Master's Degree",
+   	`6` = "PhD", `7` = "Professional Degree (DDS, JD, MD)",
+   	.default = NULL)
+
+nlsy.selected <- nlsy.selected %>%
+  mutate(highest.degree.attained.2017 = factor(highest.degree.attained.2017, levels = c("None",
+                                                                                    	"High School Diploma",
+                                                                                    	"GED",
+                                                                                    	"Associate/Junior College",
+                                                                                    	"Bachelor's Degree",
+                                                                                    	"Master's Degree",
+                                                                                    	"PhD",
+                                                                                    	"Professional Degree (DDS, JD, MD)")))
+
+nlsy.selected <- nlsy.selected %>%
+  filter(highest.degree.attained.2017 != "PhD")
+
+```
+
+```{r}
+
+occupation <- nlsy.selected$occupation.2017
+
+occupation.codes <- case_when((occupation == -3) ~ -3,
+      	(occupation == -4) ~ -4,
+      	(occupation == -5) ~ -5,
+      	(occupation >= 10 & occupation <= 430) ~ 1,
+      	(occupation >= 500 & occupation <= 950) ~ 2,
+      	(occupation >= 1000 & occupation <= 1240) ~ 3,
+      	(occupation >= 1300 & occupation <= 1530) ~ 4,
+      	(occupation >= 1540 & occupation <= 1560) ~ 5,
+      	(occupation >= 1600 & occupation <= 1760) ~ 6,
+      	(occupation >= 1800 & occupation <= 1860) ~ 7,
+      	(occupation >= 1900 & occupation <= 1960) ~ 8,
+      	(occupation >= 2000 & occupation <= 2060) ~ 9,
+      	(occupation >= 2100 & occupation <= 2150) ~ 10,
+      	(occupation >= 2200 & occupation <= 2340) ~ 11,
+      	(occupation >= 2400 & occupation <= 2550) ~ 12,
+      	(occupation >= 2600 & occupation <= 2760) ~ 13,
+      	(occupation >= 2800 & occupation <= 2960) ~ 14,
+      	(occupation >= 3000 & occupation <= 3260) ~ 15,
+      	(occupation >= 3300 & occupation <= 3650) ~ 16,
+      	(occupation >= 3700 & occupation <= 3950) ~ 17,
+      	(occupation >= 4000 & occupation <= 4160) ~ 18,
+      	(occupation >= 4200 & occupation <= 4250) ~ 19,
+      	(occupation >= 4300 & occupation <= 4430) ~ 20,
+      	(occupation == 4460) ~ 21,
+      	(occupation >= 4500 & occupation <= 4650) ~ 22,
+      	(occupation >= 4700 & occupation <= 4960) ~ 23,
+      	(occupation >= 5000 & occupation <= 5930) ~ 24,
+      	(occupation >= 6000 & occupation <= 6130) ~ 25,
+      	(occupation >= 6200 & occupation <= 6940) ~ 26,
+      	(occupation >= 7000 & occupation <= 7620) ~ 27,
+      	(occupation >= 7700 & occupation <= 7750) ~ 28,
+      	(occupation >= 7800 & occupation <= 7850) ~ 29,
+      	(occupation >= 7900 & occupation <= 8960) ~ 30,
+      	(occupation >= 9000 & occupation <= 9750) ~ 31,
+      	(occupation >= 9800 & occupation <= 9840) ~ 32,
+      	(occupation >= 9950 & occupation <= 9990) ~ 33,
+      	.default = NULL)
+
+nlsy.selected$occupation.2017 <- occupation.codes
+
+#Setting all negative values as NA as it is unclear how to properly interpret them
+nlsy.selected$occupation.2017 <- recode(nlsy.selected$occupation.2017,
+   	`1` = "EXECUTIVE, ADMINISTRATIVE AND MANAGERIAL",
+   	`2` = "MANAGEMENT RELATED",
+   	`3` = "MATHEMATICAL AND COMPUTER SCIENTISTS",
+   	`4` = "ENGINEERS, ARCHITECTS, AND SURVEYORS",
+   	`5` = "ENGINEERING AND RELATED TECHNICIANS",
+   	`6` = "PHYSICAL SCIENTISTS",
+   	`7` = "SOCIAL SCIENTISTS AND RELATED WORKERS",
+   	`8` = "LIFE, PHYSICAL, AND SOCIAL SCIENCE TECHNICIANS",
+   	`9` = "COUNSELORS, SOCIAL, AND RELIGIOUS WORKERS",
+   	`10` = "LAWYERS, JUDGES, AND LEGAL SUPPORT WORKERS",
+   	`11` = "TEACHERS",
+   	`12` = "EDUCATION, TRAINING, AND LIBRARY WORKERS",
+   	`13` = "ENTERTAINERS AND PERFORMERS, SPORTS AND RELATED WORKERS",
+   	`14` = "MEDIA AND COMMUNICATION WORKERS",
+   	`15` = "HEALTH DIAGNOSIS AND TREATING PRACTITIONERS",
+   	`16` = "HEALTH CARE TECHNICAL AND SUPPORT",
+   	`17` = "PROTECTIVE SERVICE",
+   	`18` = "FOOD PREPARATIONS AND SERVING RELATED",
+   	`19` = "CLEANING AND BUILDING SERVICE",
+   	`20` = "ENTERTAINMENT ATTENDANTS AND RELATED WORKERS",
+   	`21` = "FUNERAL RELATED OCCUPATIONS",
+   	`22` = "PERSONAL CARE AND SERVICE WORKERS",
+   	`23` = "SALES AND RELATED WORKERS",
+   	`24` = "OFFICE AND ADMINISTRATIVE SUPPORT WORKERS",
+   	`25` = "FARMING, FISHING, AND FORESTRY",
+   	`26` = "CONSTRUCTION TRADES AND EXTRACTION WORKERS",
+   	`27` = "INSTALLATION, MAINTENANCE, AND REPAIR WORKERS",
+   	`28` = "PRODUCTION AND OPERATING WORKERS",
+   	`29` = "FOOD PREPARATION",
+   	`30` = "SETTER, OPERATORS, AND TENDERS",
+   	`31` = "TRANSPORTATION AND MATERIAL MOVING WORKERS",
+   	`32` = "MILITARY SPECIFIC OCCUPATIONS",
+   	`33` = "ACS SPECIAL CODES",
+   	.default = NULL)
+
+nlsy.selected <- nlsy.selected %>%
+  mutate(occupation.2017 = factor(occupation.2017, levels = c("OFFICE AND ADMINISTRATIVE SUPPORT WORKERS",
+                                                          	"EXECUTIVE, ADMINISTRATIVE AND MANAGERIAL",
+                                                          	"MANAGEMENT RELATED",
+                                                          	"MATHEMATICAL AND COMPUTER SCIENTISTS",
+                                                          	"ENGINEERS, ARCHITECTS, AND SURVEYORS",
+                                                          	"ENGINEERING AND RELATED TECHNICIANS",
+                                                          	"PHYSICAL SCIENTISTS",
+                                                          	"SOCIAL SCIENTISTS AND RELATED WORKERS",
+                                                          	"LIFE, PHYSICAL, AND SOCIAL SCIENCE TECHNICIANS",
+                                                           	"COUNSELORS, SOCIAL, AND RELIGIOUS WORKERS",
+                                                           	"LAWYERS, JUDGES, AND LEGAL SUPPORT WORKERS",
+                                                           	"TEACHERS",
+                                                           	"EDUCATION, TRAINING, AND LIBRARY WORKERS",
+                                                           	"ENTERTAINERS AND PERFORMERS, SPORTS AND RELATED WORKERS",
+                                                           	"MEDIA AND COMMUNICATION WORKERS",
+                                                           	"HEALTH DIAGNOSIS AND TREATING PRACTITIONERS",
+                                                           	"HEALTH CARE TECHNICAL AND SUPPORT",
+                                                           	"PROTECTIVE SERVICE",
+                                                           	"FOOD PREPARATIONS AND SERVING RELATED",
+                                                           	"CLEANING AND BUILDING SERVICE",
+                                                           	"ENTERTAINMENT ATTENDANTS AND RELATED WORKERS",
+                                                           	"FUNERAL RELATED OCCUPATIONS",
+                                                           	"PERSONAL CARE AND SERVICE WORKERS",
+                                                           	"SALES AND RELATED WORKERS",
+                                                           	"FARMING, FISHING, AND FORESTRY",
+                                                           	"CONSTRUCTION TRADES AND EXTRACTION WORKERS",
+                                                           	"INSTALLATION, MAINTENANCE, AND REPAIR WORKERS",
+                                                           	"PRODUCTION AND OPERATING WORKERS",
+                                                           	"FOOD PREPARATION",
+                                                           	"SETTER, OPERATORS, AND TENDERS",
+                                                           	"TRANSPORTATION AND MATERIAL MOVING WORKERS",
+                                                           	"MILITARY SPECIFIC OCCUPATIONS",
+                                                           	"ACS SPECIAL CODES")))
+
+nlsy.selected <- nlsy.selected %>%
+  filter(occupation.2017 != "LIFE, PHYSICAL, AND SOCIAL SCIENCE TECHNICIANS" & occupation.2017 != "MILITARY SPECIFIC OCCUPATIONS" & occupation.2017 != "ACS SPECIAL CODES" & occupation.2017 != "ENGINEERING AND RELATED TECHNICIANS" & occupation.2017 != "ENTERTAINMENT ATTENDANTS AND RELATED WORKERS" & occupation.2017 != "FARMING, FISHING, AND FORESTRY" & occupation.2017 != "FOOD PREPARATION")
+
+```
+
+```{r}
+
+industry <- nlsy.selected$industry.2017
+
+industry.codes <- case_when((industry == -3) ~ -3,
+      	(industry == -4) ~ -4,
+      	(industry == -5) ~ -5,
+      	(industry >= 170 & industry <= 290) ~ 1,
+      	(industry >= 370 & industry <= 490) ~ 2,
+      	(industry >= 570 & industry <= 690) ~ 3,
+      	(industry == 770) ~ 4,
+      	(industry >= 1070 & industry <= 3990) ~ 5,
+      	(industry >= 4070 & industry <= 4590) ~ 6,
+      	(industry >= 4670 & industry <= 5790) ~ 7,
+      	(industry == 5890) ~ 8,
+      	(industry >= 6070 & industry <= 6390) ~ 9,
+      	(industry >= 6470 & industry <= 6780) ~ 10,
+      	(industry >= 6870 & industry <= 7190) ~ 11,
+      	(industry >= 7270 & industry <= 7790) ~ 12,
+      	(industry >= 7860 & industry <= 8470) ~ 13,
+      	(industry >= 8560 & industry <= 8690) ~ 14,
+      	(industry >= 8770 & industry <= 9290) ~ 15,
+      	(industry >= 9370 & industry <= 9590) ~ 16,
+      	(industry >= 9670 & industry <= 9890) ~ 17,
+      	(industry >= 9950 & industry <= 9990) ~ 18)
+
+nlsy.selected$industry.2017 <- industry.codes
+
+#Setting all negative values as NA as it is unclear how to properly interpret them
+nlsy.selected$industry.2017 <- recode(nlsy.selected$industry.2017,
+   	`1` = "AGRICULTURE, FORESTRY AND FISHERIES",
+   	`2` = "MINING",
+   	`3` = "UTILITIES",
+   	`4` = "CONSTRUCTION",
+   	`5` = "MANUFACTURING",
+   	`6` = "WHOLESALE TRADE",
+   	`7` = "RETAIL TRADE",
+   	`8` = "ARTS, ENTERTAINMENT AND RECREATION SERVICES",
+   	`9` = "TRANSPORTATION AND WAREHOUSING",
+   	`10` = "INFORMATION AND COMMUNICATION",
+   	`11` = "FINANCE, INSURANCE, AND REAL ESTATE",
+   	`12` = "PROFESSIONAL AND RELATED SERVICES",
+   	`13` = "EDUCATIONAL, HEALTH, AND SOCIAL SERVICES",
+   	`14` = "ENTERTAINMENT, ACCOMODATIONS, AND FOOD SERVICES",
+   	`15` = "OTHER SERVICES",
+   	`16` = "PUBLIC ADMINISTRATION",
+   	`17` = "ACTIVE DUTY MILITARY",
+   	`18` = "ACS SPECIAL CODES",
+   	.default = NULL)
+
+nlsy.selected <- nlsy.selected %>%
+  mutate(industry.2017 = factor(industry.2017, levels = c("EDUCATIONAL, HEALTH, AND SOCIAL SERVICES",
+                                                       	"AGRICULTURE, FORESTRY AND FISHERIES",
+                                                       	"MINING",
+                                                       	"UTILITIES",
+                                                       	"CONSTRUCTION",
+                                                       	"MANUFACTURING",
+                                                       	"WHOLESALE TRADE",
+                                                       	"RETAIL TRADE",
+                                                       	"ARTS, ENTERTAINMENT AND RECREATION SERVICES",
+                                                       	"TRANSPORTATION AND WAREHOUSING",
+                                                       	"INFORMATION AND COMMUNICATION",
+                                                       	"FINANCE, INSURANCE, AND REAL ESTATE",
+                                                       	"PROFESSIONAL AND RELATED SERVICES",
+                                                       	"ACS SPECIAL CODES",
+                                                       	"ENTERTAINMENT, ACCOMODATIONS, AND FOOD SERVICES",
+                                                       	"OTHER SERVICES",
+                                                       	"PUBLIC ADMINISTRATION",
+                                                       	"ACTIVE DUTY MILITARY")))
+
+nlsy.selected <- nlsy.selected %>%
+  filter(industry.2017 != "UTILITIES" & industry.2017 != "MINING" & industry.2017 != "AGRICULTURE, FORESTRY AND FISHERIES")
+
+```
+
+```{r}
+
+#Setting all negative values except Valid Skips as NA as it is unclear how to properly interpret them. Valid skips will be set to No.
+nlsy.selected$physical.mental.disability.1997 <- recode(nlsy.selected$physical.mental.disability.1997,
+   	`-4` = "No",
+   	`0` = "No",
+   	`1` = "Yes",
+   	.default = NULL)
+
+```
+
+```{r}
+
+#Setting all negative values as NA as it is unclear how to properly interpret them
+nlsy.selected$childhood.hard.times.1997 <- recode(nlsy.selected$childhood.hard.times.1997,
+   	`0` = "No",
+   	`1` = "Yes",
+   	.default = NULL)
+
+```
+
+```{r}
+
+# Making a copy of the dataframe for the scatter plot later
+nlsy.incarc.continuous <- na.omit(nlsy.selected)
+
+agerange <- nlsy.selected$agerange.first.incarc
+
+agerange.codes <- case_when((agerange == -3) ~ -3,
+      	(agerange == -4) ~ -4,
+      	(agerange >= 0 & agerange <= 12) ~ 1,
+      	(agerange >= 13 & agerange <= 15) ~ 2,
+      	(agerange >= 16 & agerange <= 18) ~ 3,
+      	(agerange >= 19 & agerange <= 21) ~ 4,
+      	(agerange >= 22 & agerange <= 25) ~ 5,
+      	(agerange >= 26 & agerange <= 30) ~ 6,
+      	(agerange >= 31 & agerange <= 99) ~ 7)
+
+nlsy.selected$agerange.first.incarc <- agerange.codes
+
+nlsy.selected$agerange.first.incarc <- recode(nlsy.selected$agerange.first.incarc,
+   	`-3` = "Invalid Skip",
+   	`-4` = "Valid Skip",
+   	`1` = "0 TO 12: years",
+   	`2` = "13 TO 15: years",
+   	`3` = "16 TO 18: years",
+   	`4` = "19 TO 21: years",
+   	`5` = "22 TO 25: years",
+   	`6` = "26 TO 30: years",
+   	`7` = "31 TO 99: years",
+   	.default = NULL)
+
+nlsy.selected <- nlsy.selected %>%
+  filter(agerange.first.incarc != "0 TO 12: years" & agerange.first.incarc != "13 TO 15: years")
+
+```
+
+```{r}
+
+nlsy.selected <- mutate(nlsy.selected,
+           	urban.rural = recode_factor(urban.rural,
+                                  	'0' = "Rural",
+                                  	'1' = "Urban",
+                                  	.default = NULL))
+
+```
+
+```{r}
+
+nlsy.selected <- mutate(nlsy.selected,
+                  	children.total = recode_factor(children.total,
+                                      	"0" = "0",
+                                      	"-4" = "0",
+                                      	"1" = "1",
+                                      	"2" = "2",
+                                      	"3" = "3",
+                                      	"4" = "4",
+                                      	"5" = "5",
+                                      	.default = NULL))
+
+```
+
+```{r}
+
+nlsy.selected <- mutate(nlsy.selected,
+                  	marital.status = recode_factor(marital.status,
+                                      	"0" = "Never married",
+                                      	"1" = "Married",
+                                      	"2" = "Separated",
+                                      	"3" = "Divorced",
+                                      	"4" = "Widowed",
+                                      	.default = NULL))
+
+```
+
+```{r}
+# topcoded spouse income w/invalid values removed
+nlsy.selected.spouse.topcoded <- nlsy.selected %>%
+  filter(spouse.income >= 0)
+
+# spouse income without topcoding and invalid values
+nlsy.selected <- nlsy.selected[-1*which(nlsy.selected$spouse.income==max(nlsy.selected$spouse.income, na.rm = TRUE)), ] %>%
+  filter(spouse.income >= 0)
+
+```
+
+### Introduction
+
+Starting during World War II and the Second Wave of the feminist movement, women have been entering the workforce in greater numbers. As of 2015, women made up almost half of the American workforce at 46.8%. Despite this almost equal participation between men and women, women still earn less than men on average.
+
+```{r, fig.align='center', fig.height=4, fig.width=6}
+
+ggplotly(ggplot(nlsy.selected, aes(sex, income, color=sex)) +
+  geom_boxplot() +
+  xlab("Gender") +
+  ylab("Income") +
+  theme(legend.position = "none") +
+  ggtitle("Relationship Between Gender and Income"))
+
+```
+
+The gender wage gap has been and still is a contentious public issue. While there is no debate that women earn less than men, the key aspect of the debate has been this question:
+
+> Is there a significant difference in income between men and women and does this difference vary depending on other factors?
+
+This is an important question to answer as, if it turns out that *we cannot* account for the difference appropriately, it could provide quantitative evidence that gender discrimination plays a significant role in causing the wage gap.
+
+On the other hand, if it turns out that *we can* account for the difference by other causes, then this would suggest that there is not quantitative evidence supporting gender discrimination as a cause of the wage gap. It should be noted that such a finding is not the same thing as suggesting that gender discrimination does not influence the wage gap at all, only that other factors may play a relatively more significant role.
+
+In our attempt to answer this question, we decided to look into these variables (and their relationship with gender and income) as possible other causes:
+
+ - Highest degree: Highest level of education complete as of 2017
+ - Occupation: Occupation as of 2017
+ - Industry: Industry as of 2017
+ - Childhood financial difficulty: Whether one ever experienced financially hard times during childhood
+ - Disability: Whether one ever struggled with a physical or mental issue that limited their ability to participate in work or school
+ - Urban vs. rural: Whether one lives in an urban or rural community
+ - Marital status: Marital status as of 2017
+ - Total children: Number of biological children in household as of 2017
+ - Spouse income: Spouse's income as of 2017
+- Incarceration Age: Age of first incarceration, if applicable
+
+### Data Cleaning
+
+We will be using the [NLSY97](http://www.andrew.cmu.edu/user/achoulde/94842/final_project/nlsy97/nlsy97_Nov2020.csv) (National Longitudinal Survey of Youth, 1997 cohort) data set. This data set contains survey responses from thousands of individuals who have been surveyed every one or two years starting in 1997.
+
+In the process of studying our variables, we noticed several issues that needed to be rectified prior to conducting both graphical/tabular summaries and the regression analysis.
+
+#### Alternative Responses
+
+All of the variables had several kinds of alternative responses. These included: Refusal, Don't Know, Valid Skip, Invalid Skip, and Non-Interview. While we attempted to recode these responses in order to include as much data as we could in our analysis, much of the time this was not possible as there was no clear way to interpret the data. As such, we ended up removing many data points. We removed all alternative responses for these variables:
+
+ - Income
+ - Highest degree
+ - Occupation
+ - Industry
+ - Childhood financial difficulty
+ - Marital status
+ - Urban vs. rural
+ - Spouse income
+
+We removed all the alternative responses except valid skips for these variables:
+
+ - Disability
+   - Valid skip was recoded as "No", i.e., they have not struggled with the aforementioned issue
+ - Total children
+   - Valid skip was recoded as "0" because these respondents did not have biological children
+-Age Incarcerated
+   - Valid skips were recoded to never incarcerated
+
+#### Small Samples
+
+Furthermore, there were several variables that contained factors that had less than 10 in their sample or no women. As such, we decided to exclude them as their small sample sizes would prevent them from providing a clear picture of the average income within those groups. These included these factors from these variables:
+
+ - Occupation
+   - Those working as life, physical, and social science technicians
+   - Those working in military specific occupations
+   - Those working in ACS special codes
+   - Those working in engineering or related technicians
+   - Those working in entertainment attendants and related workers
+   - Those working in farming, fishing, and forestry
+   - Those working in food preparation
+ - Marital status
+   - Widowers
+ - Total children
+   - Those who have 6 children
+   - Those who have 7 children
+   - Those who have 8 children
+ - Highest degree
+   - Those who received a PhD
+ - Industry
+   - Those working in mining
+   - Those working in utilities
+   - Those working in agriculture, forestries, and fisheries
+   
+#### Topcoding
+
+In our dataset, the income variable has been topcoded for the top 2% of earners. This means that instead of each earner in the top 2% having their own unique data point (as is the case for the remaining 98%), they all instead share the average of their group which is \$`r format(max(nlsy$income, na.rm = TRUE), scientific = FALSE)`. This can pose some issues for both the graphical/tabular summaries and the regression analysis as it can skew the data. As such, throughout both of these sections, we have reviewed the results both with and without the topcoding and then decided which results to ultimately present. For our graphical summaries, we noticed that removing topcoded values gave us a clearer understanding of our results. However, we did not notice a significant difference in our regression analysis regardless of whether we did or did not include topcoded values.
+
+```{r}
+topcode.lm <- lm(income~as.factor(sex), data = na.omit(nlsy.selected.inc.topcoding))
+notopcode.lm <- lm(income~as.factor(sex), data = na.omit(nlsy.selected))
+
+kable(summary(topcode.lm)$coef, digits = c(3, 3, 3, 4))
+kable(summary(notopcode.lm)$coef, digits = c(3, 3, 3, 4))
+```
+
+The spouse income variable also had topcoding at the 2% level. See the spouse income section under graphical and tabular summaries to see how this was handled.
+
+### Graphical and Tabular Summaries
+
+In order to better understand how each variable relates to income and gender, we have created several graphical and tabular summaries for each of them.
+
+#### Highest degree
+
+```{r, fig.align='center', fig.height=6, fig.width=9}
+
+ggplotly(ggplot(na.omit(nlsy.selected), aes(x = highest.degree.attained.2017, fill=sex)) +
+  xlab("Education Level") +
+  ylab("Count") +
+  ggtitle("Relationship Between Gender and Highest Degree Attained") +
+  geom_bar(position="dodge") +
+  theme(axis.text.x=element_text(angle=-90, hjust=0)))
+
+```
+
+We see that men are more likely than women to have finished their education at lower levels, such as None and GED. In turn, women are more likely than men to have Associate/Junior college degrees, Bachelor's Degrees, Master's Degrees and Professional Degrees (DDS, JD, MD). However, there is some uncertainty as these differences may not be great enough to be statistically significant.
+
+```{r}
+
+mean.income.sex.education <- na.omit(nlsy.selected) %>%
+  group_by(highest.degree.attained.2017, sex) %>%
+  summarize(count = n(),
+        	average.income = mean(income))
+
+kable(mean.income.sex.education, col.names = c("Highest Degree", "Gender", "Count", "Average Income"))
+
+```
+
+Men have a higher average salary than women across every educational group.
+
+#### Occupation
+
+```{r}
+
+mean.income.sex.occupation <- na.omit(nlsy.selected) %>%
+  group_by(occupation.2017, sex) %>%
+  summarize(count = n(),
+        	average.income = mean(income))
+
+kable(mean.income.sex.occupation, col.names = c("Occupation", "Gender", "Count", "Average Income"))
+
+```
+
+Men on average have a higher income than women in all occupations except:
+
+ - Engineers, architects and surveyors (though this small sub-sample only has 21 respondents)
+ - Entertainers and performers, sports and related workers (though this small sub-sample only has 24 respondents)
+ - Installation, maintenance, and repair workers (though there are only 3 women in this occupation)
+ - Mathematical and computer scientists (though the difference is slight)
+ 
+It should be noted that the reasons provided in parentheses suggest there is statistical uncertainty in said comparisons.
+
+```{r, fig.align='left', fig.height=10, fig.width=12}
+
+occupation.sex.counts <- na.omit(nlsy.selected) %>%
+  group_by(occupation.2017, sex) %>%
+  summarize(count = n())
+
+occupation.sex.counts <- occupation.sex.counts %>%
+  group_by(sex) %>%
+  mutate(totals = sum(count))
+
+occupation.sex.toplot <- occupation.sex.counts %>%
+  group_by(sex, occupation.2017) %>%
+  summarize(prop = count / totals,
+        	lower = prop.test(count, totals)$conf.int[1],
+        	upper = prop.test(count, totals)$conf.int[2])
+
+ggplotly(ggplot(occupation.sex.toplot, aes(x=reorder(occupation.2017, prop), y=prop, fill=sex)) +
+  geom_bar(position="dodge", stat="identity") +
+  geom_errorbar(aes(ymin=lower, ymax=upper),
+            	width=.2,
+            	position=position_dodge(0.9)) +
+  theme(axis.text.x=element_text(angle=-90, hjust=0)) +
+  xlab("Occupations") +
+  ylab("Gender Proportion") +
+  ggtitle("Relationship Between Gender and Occupation"))
+
+```
+
+Furthermore, we see that men and women, on average, tend to choose different careers. These differences appear to be statistically significant for certain careers. Men appear to be more prevalent in:
+
+ - Construction trades and extraction workers
+ - Installation, maintenance, and repair workers
+ - Mathematical and computer scientists
+ - Production and operating workers
+ - Protective service
+ - Setter, operators, and tenders
+ - Transportation and material moving workers
+
+While women are more prevalent in:
+
+ - Counselors, social and religious workers
+ - Healthcare technical and support
+ - Health diagnosis and treating practitioners
+ - Office and Administrative support workers
+ - Personal care and service workers
+ - Teachers
+
+In all other occupations, men and women appear to be present in around the same numbers.
+
+```{r}
+
+mean.income.occupation <- na.omit(nlsy.selected) %>%
+  group_by(occupation.2017) %>%
+  summarize(count = n(),
+        	average.income = mean(income))
+
+mean.income.occupation.plot <- mean.income.occupation %>%
+  select(occupation.2017, average.income)
+
+ggplotly(ggplot(mean.income.occupation.plot, aes(x=reorder(occupation.2017, average.income), y=average.income, fill = I('steelblue'))) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x=element_text(angle=-90, hjust=0)) +
+  theme(legend.position = "none") +
+  ylab("Average Income") +
+  xlab("Occupation") +
+  ggtitle("Average Income by Occupation"))
+
+```
+
+As men and women tend to choose different career paths, it seems that women are more likely to be in occupations with lower salaries while men are more likely to be in occupations with higher salaries. For example, in the occupations of `Office and Administrative Support Workers` and `Personal Care and Support Workers`, both of which women tend to be prevalent in, these have average salaries of \$`r format(mean.income.occupation$average.income[[16]], scientific=FALSE)` and \$`r format(mean.income.occupation$average.income[[17]], scientific=FALSE)`, respectively. On the other hand, men are more prevalent in the occupations of `Construction Trades and Extraction Workers` and `Mathematical and Computer Scientists` which have average salaries of \$`r format(mean.income.occupation$average.income[[2]], scientific=FALSE)` and \$`r format(mean.income.occupation$average.income[[14]], scientific=FALSE)`, respectively.
+
+#### Industry
+
+```{r}
+
+mean.income.sex.industry <- na.omit(nlsy.selected) %>%
+  group_by(industry.2017, sex) %>%
+  summarize(count = n(),
+        	average.income = mean(income))
+
+kable(mean.income.sex.industry, col.names = c("Industry", "Gender", "Count", "Average Income"))
+
+```
+
+According to the above table, men on average have a higher income than women in all industries. To see which of these differences in average incomes are statistically significant, see the corresponding graph in the Findings from Regression Analysis section.
+
+```{r, fig.align='left', fig.height=10, fig.width=12}
+
+industry.sex.counts <- na.omit(nlsy.selected) %>%
+  group_by(industry.2017, sex) %>%
+  summarize(count = n())
+
+industry.sex.counts <- industry.sex.counts %>%
+  group_by(sex) %>%
+  mutate(totals = sum(count))
+
+industry.sex.toplot <- industry.sex.counts %>%
+  group_by(sex, industry.2017) %>%
+  summarize(prop = count / totals,
+        	lower = prop.test(count, totals)$conf.int[1],
+        	upper = prop.test(count, totals)$conf.int[2])
+
+ggplotly(ggplot(industry.sex.toplot, aes(x=reorder(industry.2017, prop), y=prop, fill=sex)) +
+  geom_bar(position="dodge", stat="identity") +
+  geom_errorbar(aes(ymin=lower, ymax=upper),
+            	width=.2,
+            	position=position_dodge(0.9)) +
+  theme(axis.text.x=element_text(angle=-90, hjust=0)) +
+  ylab("Gender Proprtions") +
+  xlab("Industries") +
+  ggtitle("Relationship Between Gender and Industry"))
+
+```
+
+Men and women also tend to choose different industries in some instances. The industries that have statistically significant greater amount of men are:
+
+ - Construction
+ - Manufacturing
+ - Professional and Related Services
+ - Public Administration
+ - Transportation and Warehousing
+ - Wholesale Trade
+ 
+Women are more prevalent in:
+
+ - Educational, Health, and Social Services
+ 
+In all other industries, men and women appear to be present in around the same numbers.
+
+
+```{r}
+
+mean.income.industry <- na.omit(nlsy.selected) %>%
+  group_by(industry.2017) %>%
+  summarize(count = n(),
+        	average.income = mean(income))
+
+mean.income.industry.plot <- mean.income.industry %>%
+  select(industry.2017, average.income)
+
+ggplotly(ggplot(mean.income.industry.plot, aes(x=reorder(industry.2017, average.income), y=average.income, fill = I('steelblue'))) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x=element_text(angle=-90, hjust=0)) +
+  theme(legend.position = "none") +
+  ylab("Average Income") +
+  xlab("Industry") +
+  ggtitle("Average Income by Industry"))
+
+```
+
+Similar to occupations, women seem to be more likely than men to be in less lucrative industries. While the female-dominant industry of `educational, health, and social services` has an average income of around \$`r format(mean.income.industry$average.income[[3]], scientific=FALSE)`, the male-dominant industries of `construction` and `manufacturing` tend to have average salaries of \$`r format(mean.income.industry$average.income[[2]], scientific=FALSE)` and \$`r format(mean.income.industry$average.income[[7]], scientific=FALSE)`.
+
+#### Disability
+
+```{r, fig.align='center', fig.height=4, fig.width=6}
+
+ggplotly(ggplot(na.omit(nlsy.selected), aes(x = physical.mental.disability.1997, fill=sex)) +
+  xlab("Have they ever had a disability?") +
+  ggtitle("Relationship Between Gender and Disability") +
+  geom_bar(position="dodge") +
+  theme(axis.text.x=element_text(angle =- 90, hjust = 0)) +
+  ylab("Count"))
+
+```
+
+```{r}
+
+mean.income.sex.disability <- na.omit(nlsy.selected) %>%
+  group_by(physical.mental.disability.1997, sex) %>%
+  summarize(count = n(),
+        	average.income = mean(income))
+
+kable(mean.income.sex.disability, col.names = c("Disability?", "Gender", "Count", "Average Income"))
+
+```
+
+Men appear to be more likely than women to have (or have ever had) some sort of disability. This difference does not appear to be statistically significant as the difference is only 6.
+
+```{r}
+
+mean.income.disability <- na.omit(nlsy.selected) %>%
+  group_by(physical.mental.disability.1997) %>%
+  summarize(count = n(),
+        	average.income = mean(income))
+
+kable(mean.income.disability, col.names = c("Disability?", "Count", "Average Income"))
+
+```
+
+While those without disabilities do appear to on average have higher incomes than those with, this difference does not hold when including sex. For example, men who have (or have ever had) disabilities have a higher average income than women who have never had a disability.
+
+#### Childhood financial difficulty
+
+```{r, fig.align='center', fig.height=4, fig.width=6}
+
+ggplotly(ggplot(na.omit(nlsy.selected), aes(x = childhood.hard.times.1997, fill=sex)) +
+  ylab("Count") +
+  xlab("Have you ever faced financial difficulties in childhood?") +
+  ggtitle("Relationship Between Gender and Childhood Financial Difficulty") +
+  geom_bar(position="dodge") +
+  theme(axis.text.x=element_text(angle =- 90, hjust = 0)))
+
+```
+
+```{r}
+
+mean.income.sex.hardtimes <- na.omit(nlsy.selected) %>%
+  group_by(childhood.hard.times.1997, sex) %>%
+  summarize(count = n(),
+        	average.income = mean(income))
+
+kable(mean.income.sex.hardtimes, col.names = c("Childhood financial difficulty?", "Gender", "Count", "Average Income"))
+
+```
+
+Men appear to be more likely than women to have had childhood financial difficulties. However, this difference does not appear to be statistically significant as the difference is only 12.
+
+```{r}
+
+mean.income.hardtimes <- na.omit(nlsy.selected) %>%
+  group_by(childhood.hard.times.1997) %>%
+  summarize(count = n(),
+        	average.income = mean(income))
+
+kable(mean.income.hardtimes, col.names = c("Childhood financial difficulty?", "Count", "Average Income"))
+
+```
+
+Those without childhood financial difficulties appear to on average have higher incomes than those with. This difference does hold when including sex. For example, men who have had childhood financial difficulties have a lower average income than women who have never had childhood financial difficulties. However, this difference is likely statistically insignificant as the difference is only $25.
+
+#### Incarceration Age
+
+```{r}
+
+incarc.plot <- na.omit(nlsy.selected) %>%
+  group_by(agerange.first.incarc, sex) %>%
+  summarize(Count = n(),
+        	AverageIncome = mean(income))
+
+kable(incarc.plot, col.names = c("Incarceration Age", "Sex", "Count", "Average Income"))
+
+```
+
+Men outnumber women in being incarcerated regardless of age. Furthermore, those who were never incarcerated earn more than those who were. The one exception is men who were incarcerated between the ages of 31 and 99, as they earn more than women who were never incarcerated.
+
+#### Urban vs. Rural
+
+```{r}
+#Average income by type of dwelling
+kable(na.omit(nlsy.selected) %>%
+  group_by(urban.rural)%>%
+  summarize(avg.income = mean(income), count =  n()), format = "markdown", col.names = c("Urban vs. Rural", "Average Income", "Count"))
+
+```
+
+
+```{r, fig.align='center', fig.height=6, fig.width=9}
+#violin plot
+qplot(x = urban.rural,y = income, data = na.omit(nlsy.selected), geom = "violin", fill = sex)+
+  xlab("Urban-Rural Dwelling")+
+  ylab("Income")+
+  ggtitle("Higher Income Among Urban Dwellers")
+```
+
+The first table highlights that the urban dwellers have the highest average income. The violin plot also confirms this but shows that there may be outliers due to the small density of individuals towards the top of the maximum income.
+
+Table also highlights that the majority of our non-missing respondents are urban dwellers. This means that we will have a closer approximation to the true value than in the case of rural respondents. However, since there is still a large sample for rural dwellers, we can still employ generalization.
+
+The above violin plot shows that those in rural settings have a higher concentration of people at a lower income. Both female and male urban dwellers have a higher maximum income than their rural counterparts.
+
+Include basic summaries such as count, etc. Tie into predictions of what kind of regression/how variable fits into regression
+
+#### Total Children
+
+```{r}
+kable(na.omit(nlsy.selected) %>%
+  group_by(children.total, sex) %>%
+  summarize(count = n(),avg.inc = mean(income, na.rm = TRUE)),
+  col.names = c("Total Children", "Gender", "Count", "Average Income"))
+```
+
+
+```{r, fig.align='center', fig.height=6, fig.width=9}
+ggplotly(ggplot(na.omit(nlsy.selected), aes(x= children.total, fill = sex))+
+  geom_bar(position = "dodge")+
+  xlab("Respondent's Number of Biological Children")+
+  ylab("Count of Respondents")+
+  ggtitle("Respondents by Number of Biological Children in Household"))
+```
+
+We used the first table to drop all number of children groupings that did not have a sample size of at least 10. The above table indicates that there are more than 10 people in each group. Though we have not tested for statistical significance, the first table indicates that the income gap between men and women increases based on how many biological children a respondent has. Our conduction of the regression will allow us to see whether these differences are statistically significant.
+
+The bar chart shows that there are more women respondents for all categories except for the 0 category. This may be due to women having a higher likelihood of being single parents. This graph in addition to the first table indicate that there is still a large enough sample size across categories.
+
+#### Spouse Income
+```{r}
+summary(nlsy.selected.spouse.topcoded$spouse.income)
+```
+
+The above table summarizes the distribution of spouse income before removing topcoding. It shows that the data is highly skewed to the right with a mean of \$50,926 and a median of \$42,000. 
+
+```{r}
+summary(nlsy.selected$spouse.income)
+```
+
+```{r, fig.align='center', fig.height=6, fig.width=9}
+ggplotly(ggplot(aes(spouse.income), data = na.omit(nlsy.selected))+
+  geom_histogram()+
+  xlab("Spouse's Income")+
+  ylab("Count of Respondents")+
+  ggtitle("Spouse's Income After Topcoding"))
+```
+
+Similar to the income variable, spouse's income is topcoded. The top 2% of values are based on average of \$`r format(max(nlsy.selected$spouse.income, na.rm = TRUE), scientific = FALSE)`. We see that though the average spouse income is \$47,961, the data is skewed to the right with a median of $42,000. This data is therefore less skewed than the data before topcoding. This suggests that our analysis will not be as skewed towards higher incomes, but will be more accurate with the median, which closely represents where the majority of respondents lie, improving the generalizability of our results.
+
+```{r}
+kable(na.omit(nlsy.selected) %>%
+  group_by(marital.status, sex) %>%
+  summarize(count = n(),avg.inc = mean(income)), 
+  col.names = c("Marital Status", "Sex", "Count", "Average Income"))
+```
+
+```{r, fig.align='center', fig.height=6, fig.width=9}
+ggplotly(qplot(spouse.income, income, facets = ~ sex, data = na.omit(nlsy.selected)) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))+
+  stat_smooth(method = "lm")+
+  xlab("Spouse Income")+
+  ylab("Individual's Income")+
+  ggtitle("Positive Correlation Between Respondent's Income and Spouse's Income by Gender"))
+```
+
+After we remove the top coded variables, we see that an increase in spousal income is associated with an increase of individual income. From the correlation coefficient of `r round(with(nlsy.selected, cor(income, spouse.income)), 2)` for income and spousal income, we can see that overall there is a weak but positive correlation between spousal income and income. This coincides with the graphs of spousal income versus income for both men and women. We would have to test for the apparently higher and stronger correlation between spouse income and income for men versus women to see if there is a statistically significant difference.
+
+#### Marital Status
+```{r}
+marital.average.income <- nlsy.selected %>%
+  group_by(marital.status, sex) %>%
+  summarize(count = n(),avg.inc = mean(income))
+
+kable(marital.average.income, col.names = c("Marital Status", "Gender", "Count", "Average Income"))
+```
+
+```{r, fig.align='center', fig.height=6, fig.width=9}
+marital.stat.tab <- na.omit(nlsy.selected) %>%
+  group_by(marital.status) %>%
+  summarize(avg.income = mean(income),
+        	lower = t.test(income)$conf.int[1],
+        	upper = t.test(income)$conf.int[2],
+        	count = n())
+
+ggplotly(ggplot(marital.stat.tab, aes(x = reorder(marital.status, avg.income), y= avg.income, fill= marital.status)) +
+  geom_bar(position="dodge", stat="identity") +
+  theme(axis.text.x=element_text(angle =- 60, vjust = 0.5))+
+  geom_errorbar(aes(ymin=lower, ymax=upper),
+            	width=.2,               	 
+            	position=position_dodge(0.9))+
+  ylab("Average Income")+
+  xlab("Marital Status")+
+  ggtitle("Statistically Significant Income Differences by Marital Status"))+
+  theme(legend.position = "none")
+
+```
+
+The first table shows that, after removing invalid and topcoded values from our analysis, we only had 3 widowed females and no widowed males in our analysis. The above graph shows that it is hard to determine whether the differences in income by marital status are statistically significant. This could lead to the other variables absorbing the effect that the widowed factor would have had on income when we run a regression. This could cause standard error or inaccurately increase the effect size.
+
+We see in the count of respondents table that the majority of respondents are married. By looking at average income in the tabular summary by marital status and sex, we can see that there does seem to be an income gap between men and women based on marital status.
+
+### Methodology for Linear Regression Model
+
+#### Missing Values
+
+As mentioned in the introduction, in the majority of the cases, we unfortunately had to simply remove the missing values. We had to do this as the dataset did not provide clear notes on how to interpret missing values. For example, in the case of childhood financial difficulty variable, 1084 of the responses were marked as "Valid Skip" but there was no note as to how this response differed from the response of "No." In order to avoid conflating "No" with the possibly unclear response of "Valid Skip" we simply had to drop those 1084 rows. Dropping these rows will weaken the resulting interpretation and generalizability of our analysis not only because it reduces our sample size, but more importantly, it could make our overall sample less randomized.
+
+This could be the case if those respondents who had the "Valid Skip" value were not a random sub-sample; as we have no reason to believe they were random, it is unlikely they were random. While it is likely that the initial sampling was done randomly from the overall population, it is unlikely that those with the "Valid Skip" response are also a random sub-sample of the dataset. In turn, if our overall sample is no longer random (or even less randomized), this would mean we are less able to generalize our results and make predictions regarding the general population.
+
+#### Topcoded Variables
+
+For the topcoded variables of income and spouse income, we ended up removing the topcoded rows entirely. We did this for two reasons. Firstly, it helped make our graphs more clear as it reduced their skewness. For example, for our violin plots when describing the urban vs. rural variable, we noticed that the presence of the topcoded rows skewed our plots towards a higher income, thereby making it harder to interpret the larger distributions near the lower end of the income axis. Secondly, we noticed that removing the topcoding did not significantly change our regression results in terms of which variables were and were not significant.
+
+
+#### Plots We Tried
+
+We produced a scatter plot of spouse income and the individual's income. We expected to find that as the man's income increased, his spouse's income would decrease. In conjunction, we would expect the women's income to decrease as her spouse's income increased. This did not hold true based on our graph of statistical significance.
+
+We also produced a scatter plot of age at first incarceration and income. We expected that those who had an earlier age of first incarceration would have a lower income than those who were incarcerated at a later age. Instead, we found that the overall trend of the scatter plot was a horizontal line, suggesting that regardless of when one is first incarcerated, they can expect to have a similar, below average income.
+
+#### Variable Selection
+To begin our variable selection process, we first began constructing linear regression model comparisons with and without each variable. From this, we found that only the urban-rural variable is not a significant predictor in the regression of income on sex.
+
+```{r, eval = FALSE}
+income.lm <- lm(income ~ sex, data = na.omit(nlsy.selected))
+anova(update(income.lm, . ~ . + highest.degree.attained.2017), income.lm)
+anova(update(income.lm, . ~ . + physical.mental.disability.1997), income.lm)
+anova(update(income.lm, . ~ . + childhood.hard.times.1997), income.lm)
+anova(update(income.lm, . ~ . + agerange.first.incarc), income.lm)
+anova(update(income.lm, . ~ . + urban.rural), income.lm)
+anova(update(income.lm, . ~ . + children.total), income.lm)
+anova(update(income.lm, . ~ . + marital.status), income.lm)
+anova(update(income.lm, . ~ . + spouse.income), income.lm)
+```
+
+To narrow down what variables to use in our analysis, we examined whether there was collinearity between variables. If we have variables with collinearity, then we have difficulty interpreting how those variables uniquely determine the results as they are associated with another variable. Collinearity therefore impacts the accuracy of our interpretations.
+
+To determine collinearity, we run the following pairs plot.
+
+```{r}
+nlsy.selected.colnames <- c("sex",
+                         	"income",
+                         	"highest.degree.attained.2017",
+                         	"physical.mental.disability.1997",
+                         	"childhood.hard.times.1997",
+                         	"agerange.first.incarc",
+                         	"children.total",
+                         	"marital.status",
+                         	"spouse.income")
+
+ggpairs(na.omit(nlsy.selected)[,c(nlsy.selected.colnames)], axisLabels = "internal")
+```
+
+The above plot shows that there is not a specific two-variable combination in which a large proportion only falls into one of the combined categories. For example, for men and women, we do not see all women fall into rural and all men fall into urban. This testament holds for all the variables presented in the plot. Since there does not seem to be any cases in which knowing the value of one variable means we know the value of the other, we can confidently use a combination of these variables in our regression analyses.
+
+After doing the graphical and tabular summaries along with the above pairs plot, we felt that the following four variables had the greatest variance income between genders.
+
+ - Highest degree
+ - Spouse income
+ - Total children
+ - Occupation
+ - Industry
+
+While the other variables provided informative descriptions, we decided to not include them either because they were most applicable only to a small sub-sample of the dataset (such as childhood financial difficulty, disability, and age incarcerated), or because we simply did not want to over-complicate the following regressions with too many variables.
+
+### Findings from Regression Analysis
+
+We utilized the above methodology to determine what variables we want to test and then include in our analysis.
+
+For our variables, we used the following baselines:
+ - Sex: Male- to highlight how much women are disadvantage in terms of income
+ - Highest degree: None- to see the impact of educational capital
+ - Total children: 0- to see the association between the number of children
+ - Occupation: Office and Administrative Support Workers- it’s the most populous category so will improve generalizability
+ - Industry: Educational Health and Social Services- it’s the most populous category so will improve generalizability
+
+#### Regressing Income on Sex
+We first begin with an assessment of the relationship between sex and income. We start with the following model:
+
+<center>
+**Income = Intercept + $\beta$ * sex**
+</center>
+<br>
+
+```{r}
+income.lm <- lm(income ~ sex, data = na.omit(nlsy.selected))
+
+sum.income.lm <- summary(income.lm)
+
+kable(sum.income.lm$coef, digits = c(3, 3, 3, 4))
+
+#variables to use in code chunks
+female.inc.lm.coef <- sum.income.lm$coef["sexFemale", "Estimate"] 
+male.inc.lm.coef <- sum.income.lm$coef["(Intercept)", "Estimate"]
+```
+
+```{r}
+
+income.diff <- as.numeric(format(sum.income.lm$coef["sexFemale", "Estimate"], scientific = FALSE)) * (-1)
+
+```
+Female represents the baseline for sex.  From the above model, we see that women tend to earn an average of `r format(income.diff, scientific = FALSE)` less than men. With a p-value of  `r format(round(sum.income.lm$coef["sexFemale", "Pr(>|t|)"], 4), scientific = FALSE)`, this is significant at the 5% significance level.The next step is to determine whether this statistically significant difference holds when including the effects of other variables.
+
+#### Adding highest degree and urban vs. rural to determine significance
+
+In this section, we look at at the impact of adding the variables education and urban rural to our regression to determine if it changes the effect size that sex has on income. First we look at the regression model:
+
+```{r}
+income.lm.ed.urban <- lm(income ~ sex + highest.degree.attained.2017 + urban.rural,
+                     	data = na.omit(nlsy.selected))
+kable(summary(income.lm.ed.urban)$coef, digits = c(3, 3, 3, 4))
+```
+Through this table we see that the sexMale coefficient is statistically significant at the 5% significance level. We also see that the coefficients for highest degree attained for Bachelor's, Master's, PH.D., and Professional Degrees are also statistically significant at the 5% significance level in comparison to the baseline of no education attained. This indicates that gender in addition to highest degree attained can influence income. The urban coefficient suggests that those in urban areas earn \$`r format(round(summary(income.lm.ed.urban)$coef["urban.ruralUrban", "Estimate"], 2), scientific = FALSE)` more on average than those in rural settings, all other factors being constant. However, this difference is not statistically significant at the 5% level.
+
+To check whether the highest degree attained variable is a significant association within the above model, we remove the urban-rural variable and compare the model to that of income on sex.
+
+```{r}
+anova.educ <- anova(update(income.lm.ed.urban, . ~ . - urban.rural), income.lm)
+```
+By running an ANOVA for the model with and without education, we see that the p-value `r round(anova.educ$"Pr(>F)"[[2]], 4)` is statistically significant and highest education attained is a important variable for modeling and explaining income.
+
+Therefore, we run an ANOVA below to determine whether the urban-rural variable is significant.
+```{r}
+anova.urban <- anova(update(income.lm.ed.urban, . ~ . -highest.degree.attained.2017), income.lm)
+anova.urban
+```
+
+The urban coefficient was not significant in the model. The ANOVA confirms this as the p=value is `r round(anova.urban$"Pr(>F)"[[2]], 4)`, which is not statistically significant at the 5% level. The urban-rural variable therefore is not a significant variable in modeling income. We therefore removed it from our next regression.
+
+#### Adding occupation and determining significance
+
+In this section, we look at at the impact of adding occupation to determine if it changes the effect size that sex has on income. First we look at the regression model:
+
+```{r}
+income.lm.occ <- lm(income ~ sex + occupation.2017, data = na.omit(nlsy.selected))
+
+sum.income.lm.occ <- summary(income.lm.occ)
+
+kable(summary(income.lm.occ)$coef, digits = c(3, 3, 3, 4))
+```
+Through this table we see that only the sexMale coefficient is statistically significant, with a p-value of `r format(round(sum.income.lm.occ$coef["sexFemale", "Pr(>|t|)"], 4), scientific = FALSE)`. The lack of significance for the occupation factors may be due to the existence of collinearity as occupation.
+
+Therefore, we run an ANOVA below to determine whether adding occupation is significant.
+```{r}
+anova.occ <- anova(update(income.lm, . ~ . + occupation.2017), income.lm)
+anova.occ
+```
+
+None of the occupation factors were significant, so we tried removing it, but as the ANOVA test showed a significant result of `r round(anova.occ$"Pr(>F)"[[2]], 4)`, this tells us that the occupation.2017 variable is an important variable in modeling income.
+
+For the last regression, we will be looking at the impact of these variables on income: gender, highest degree, occupation, and total children.
+
+```{r}
+final.lm <- lm(income ~ sex + highest.degree.attained.2017 + occupation.2017 + children.total +industry.2017, data = na.omit(nlsy.selected))
+
+sum.final.lm <- summary(final.lm)
+gender.gap.inc <- abs(sum.final.lm$coef["sexFemale", "Estimate"])
+construction.gap.inc <- sum.final.lm$coef["occupation.2017CONSTRUCTION TRADES AND EXTRACTION WORKERS", "Estimate"]
+
+kable(sum.final.lm$coef, digits = c(3, 3, 3, 4))
+```
+
+In this model the baseline intercept refers to a female, with a highest degree of None (which means less than a high school diploma), an occupation in Office and Administrative Support Workers, 0 total children, Educational Health and Social Services industry, and one who lives in an urban community. This individual has a predicted income of \$`r format(round(sum.final.lm$coef["(Intercept)", "Estimate"], 2), scientific = FALSE)`. As all the variables in this model are categorical, one would simply add or subtract the given coefficients in order to change the interpretation. For example, if one wanted to change this person's gender and instead have them work in the construction industry, one would first increase their salary by \$`r format(round(gender.gap.inc), 2)` (for becoming male) but then subtract \$`r format(round(construction.gap.inc), 2)` (for the construction occupation). As such, their new salary would be \$`r format(round(sum.final.lm$coef["(Intercept)", "Estimate"]+ gender.gap.inc + construction.gap.inc, 2), scientific = FALSE)`
+
+In this model, the following factors of the variables are significant:
+
+- Gender: Male
+- Highest Degree: Associates degree and up
+- Occupation: Education, Training, and Library Workers, Health Diagnosis and Treating Practitioners, Protective Service, Personal Care and Service Workers, Sales and Related Workers
+- Industry: Manufacturing; Public Administration; Entertainment, Accommodations, and Food Services; ACS Special Codes, Finance, Insurance and Real Estate, Transportation and Warehousing, Wholesale Trade 
+
+As only one of the total children level's was statistically significant, let's try removing the total children variable from the model and conduct an ANOVA test to see if there is a difference between these two models: one with it and one without it.
+
+```{r}
+anova.children.total <- anova(update(final.lm, . ~ . - children.total), final.lm)
+anova.children.total 
+```
+
+As the ANOVA test has provided us a value of `r round(anova.children.total$"Pr(>F)"[[2]], 4)`, which is slightly greater than 0.05, we should conclude that the total children variable does not significantly improve the model and that using the model without the total children variable would be adequate.
+
+#### Difference in Means for Industry
+To look at statistical significance in the income gap between men and women, we create a difference in means visual for industry.
+
+```{r, fig.align='left', fig.height=6, fig.width=9}
+sex.income.indust.tab <- na.omit(nlsy.selected) %>%
+  group_by(industry.2017) %>% 
+  summarize(diff.means = t.test(x=income[sex == "Male"], 
+                          y=income[sex == "Female"])$estimate[1] - 
+                   t.test(x=income[sex == "Male"], 
+                          y=income[sex == "Female"])$estimate[2],
+            lower = t.test(x=income[sex == "Male"], 
+                           y=income[sex == "Female"])$conf.int[1],
+            upper = t.test(x=income[sex == "Male"], 
+                           y=income[sex == "Female"])$conf.int[2])
+
+ggplotly(ggplot(sex.income.indust.tab, aes(x= reorder(industry.2017, diff.means), y= diff.means, fill= industry.2017)) +
+  geom_bar(position="dodge", stat="identity") +
+  theme(axis.text.x=element_text(angle =-90, vjust = 0))+
+  geom_errorbar(aes(ymin=lower, ymax=upper),
+            	width=.2,               	 
+            	position=position_dodge(0.9))+
+  xlab("Industry")+
+  ylab("Difference in Average Income")+
+  ggtitle("Gender Difference in Income by Industry") +
+  theme(legend.position = "none"))
+```
+
+The greatest gender differences in mean income are found in the industries of `public administration`, `finance, insurance, and real estate`, and `acs special codes`. Furthermore, there is not a statistically significant difference in the differences between industries, i.e., they may all be around the same.
+
+#### Adding Highest Degree with Gender as an Interaction Term
+```{r}
+final.lm.interact <- update(final.lm, . ~ . + highest.degree.attained.2017*sex)
+
+sum.final.lm.interact <- summary(final.lm.interact)
+
+kable(sum.final.lm.interact$coef, digits = c(3, 3, 3, 4))
+```
+As several of the levels of the variable education were statistically significant, as was the gender male variable. We decided to run an interaction model. However, it seems that none of the interaction terms (those that contain semicolons near the bottom) are statistically significant. However, to test this for sure, we can conduct an ANOVA test.
+
+Therefore, we run an ANOVA below to determine whether highest degree with sex is significant.
+```{r}
+anova.interact <- anova(final.lm.interact, final.lm)
+anova.interact
+```
+As the ANOVA test provided a p-value of `r round(anova.interact$"Pr(>F)"[[2]], 4)`, this tells us that the new interaction model is not better and predicting income than the old model. We know this as the test statistic is greater than 0.05. As such, it is better to simply use the older model.
+
+#### Adding Spouse Income
+
+```{r}
+
+last.lm <- lm(income ~ sex + highest.degree.attained.2017 + occupation.2017 + spouse.income + industry.2017, data = na.omit(nlsy.selected))
+anova.last <- anova(update(last.lm, . ~ . - spouse.income), last.lm)
+anova.last
+
+kable(summary(last.lm)$coef, digits = c(3, 3, 3, 4))
+
+```
+
+For our last regression, we decided to add spouse income to the last model. We see that the `spouse.income` variable has a p-value that is significant at the 5% level.
+
+```{r}
+
+anova(update(last.lm, . ~ . - spouse.income), last.lm)
+
+```
+
+To be certain in our results, we conduct an ANOVA test. Our p-value of `r round(anova.last$"Pr(>F)"[[2]], 4)` is also significant at the 5% level.
+
+We ran the following diagnostic plots below to compare the fit of our models.
+
+#### Comparing Goodness of Fit Between Models via Diagnostic Plots
+Now that we have done multiple iterations of our regression, and have determined what variables to add, it would be useful to compare the fit of our data between our first and final regression.
+
+The first model we are comparing is the regression of income on sex:
+<center>
+**Income = Intercept + $\beta$ * sex**
+</center>
+<br>
+
+The second model that we are comparing is the regression of income on :
+<center>
+**Income = Intercept + $\beta$ * sex + $\beta$ * highest education attained + $\beta$ * occupation + $\beta$ * spouse income + $\beta$ * industry**
+</center>
+<br>
+
+
+##### Diagnostics for Model 1
+```{r}
+plot(income.lm)
+```
+
+**Residuals vs. Fitted**
+The residuals versus fitted plot indicates that the residuals do not have constant variance. The clear pattern of two distinct lines suggests the linear model is not appropriate for this data.
+
+**Normal QQ plot**
+Since this plot indicates whether the quantiles of the normal distribution matches those of the response variable, we can be certain that the response variable is not normally distributed. Especially at the higher tail end, the quantiles of the response variable do not overlay that of the normal distribution. This indicates that our p-values may not be believable.
+
+**Scale-location plot**
+The scale location is similar to the residuals versus fitted. Though for both there is a straight line, there are two distinct lines of data on the plot. However, the ideal does indicate that there should be a constant slope.
+
+**Residuals vs Leverage**.  
+The residuals versus leverage plot for Model 1 does not even show a Cook's line. Therefore there are no observations that have both a high residual and are influential (high leverage). This means there are no outliers in this set.
+
+##### Diagnostics for Model 2
+```{r}
+plot(final.lm)
+```
+**Residuals vs. Fitted**
+The residuals in this plot have a less defined pattern compared to the first model. They also have a more constant variance, which indicates that a linear model is more appropriate for model 2 versus Model 1.
+
+**Normal QQ plot**
+Similar to the Normal QQ plot in Model 1, the tail ends of the response variable's distribution are not perfectly aligned with that of the normal distribution plot. However, we do see that the lower tails of Model 2's Normal QQ plot are more closely aligned with the normal distribution. However, since the upper tail of Model 2's plot is still not as closely aligned, we should still believe  the p-values with caution.
+
+**Scale-location plot**
+The scale-location plot for Model 2 does not match the ideal of a  horizontal line that shows constant variance for residuals. Compared to Model 1, it has a less discernible pattern but does not have a horizontal slope for the line.
+
+**Residuals vs Leverage**  
+Unlike in Model 1, the Cook's line shows up in Model 2. This means that there are more observations with a higher leverage and residuals than in Model 1. However, since there are no observations with both high leverage and residuals, according to the Cook's line, we do not have any outliers in our Model 2.
+
+##### Diagnostics for Model 3
+```{r}
+plot(last.lm)
+```
+
+The diagnostic plots for model 3 are identical to the plots of model 2, so please see the prior interpretations.
+
+### Discussion
+
+#### Main Conclusions
+
+Through our analysis, we sought to answer the following question:
+
+>Is there a significant difference in income between men and women? Does the difference vary depending on other factors?
+
+In response the the first question, we found that the answer was yes. Men, on average, earn \$`r format(round(abs(female.inc.lm.coef), 2), scientific = FALSE)` than women. More precisely, the average man in the US makes \$`r format(male.inc.lm.coef, scientific = FALSE)` and the average women makes \$`r format(male.inc.lm.coef + female.inc.lm.coef, scientific = FALSE)`. This means that the average women makes `r format( round((male.inc.lm.coef+ female.inc.lm.coef)/male.inc.lm.coef, 2), scientific = FALSE)` cents for every dollar a man makes. This linear regression also had a p-value of `r format(round(sum.income.lm$coef["sexFemale", "Pr(>|t|)"], 4), scientific = FALSE)` which shows that it is significant at the 5% level.
+
+As for the second question, the difference does appear to vary depending on other factors, though not very much. Even when accounting for the variables of highest degree attained, occupation, and industry, and spouse income, we were only able to reduce the income gap by `r format(646.2, scientific = FALSE)`, which translates to a `3%` reduction from a `26%` income gap to a `23%` income gap. This still leaves `23%` unaccounted for by our current model.
+
+On the one hand, this could provide quantitative evidence for gender discrimination against women. On the other hand, this could simply mean there are other confounding variables we have yet to account for. Some examples of these variables include:
+
+ - Work hours: Women may tend to prefer more flexible work hours than males
+ - Salary negotiation: It is likely that men are more likely to negotiate up their salaries than women
+ - Maternity leave: Maternity leave is also more widely used than paternity leave and there is no federal law mandating paid maternity leave
+
+As such, we conclude that as there is still `23%` of the wage gape that is unexplained by our model, we are not confident that we have accounted for all other possible confounding variables and so we cannot be certain that this remaining gap is caused by discrimination.
+
+#### Limitations and Confidence
+
+The limitations of our analysis were shown via our diagnostic plots. For our model of only income with gender, while we found that our p-value was statistically and practically significant, the diagnostic plots showed that our model lacked constant variance, thereby reducing our confidence in our p-value. For our model of gender with highest degree, occupation and total children, while this was an improvement on the earlier model in terms of constant variance, there could still be room for improvement as our scale-location plot was not as horizontal as it could have ideally been.
+
+Overall, however, our initial model is believable as our finding of `26%` for the overall wage gap is near estimates from other researchers. However, our second model is less believable as other researchers have been able to include other variables and explain a greater part of the wage gap then we have done. As such, we would not feel confident presenting our analysis to policy makers. If we were to present to policymakers now without accounting for confounding variables, our main policy recommendation will likely be quite different compared to if we had accounted for all possible confounding variables.
+
+On a final note, it is clear that more research and more legislation must be done. If we were to estimate the lifetime earnings a woman loses because of the wage gap, we conservatively estimate this to be around \$`r format(13659 * 50, scientific = FALSE)`. This makes our findings quite practically significant.
+
+
+
