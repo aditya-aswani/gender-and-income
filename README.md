@@ -1,5 +1,5 @@
 # Gender and Income
-## Analyzing the gender wage gap based on the National Longitudinal Survey of Youth (1997 cohort) data set
+## Analyzing the gender wage gap with R based on the National Longitudinal Survey of Youth (1997 cohort) data set
 
 Our project aimed to answer this main question: Is there a significant difference in income between men and women and does this difference vary depending on other factors?
 
